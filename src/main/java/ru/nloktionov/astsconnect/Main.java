@@ -4,6 +4,7 @@ import com.micex.client.API;
 import com.micex.client.Client;
 import com.micex.client.ClientException;
 
+import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -15,13 +16,22 @@ import static ru.nloktionov.astsconnect.util.Constants.SERVER;
 import static ru.nloktionov.astsconnect.util.Constants.USER_ID;
 
 public class Main {
-    public static void main(String[] args) {
+    public static void main(String[] args) throws IllegalAccessException, NoSuchFieldException {
+        configureJavaLibraryPaths();
         loadDlls();
         Client client = connect(params());
 
         // Print some info about server connected to
         API.ServerInfo serverInfo = client.getServerInfo();
         System.out.printf("SystemId=%s, SessionId=%d, UserId=%s%n", serverInfo.systemID, serverInfo.sessionID, serverInfo.userID);
+    }
+
+    // Provide path to dlls
+    private static void configureJavaLibraryPaths() throws IllegalAccessException, NoSuchFieldException {
+        System.setProperty("java.library.path", "${env_var:PATH};C:\\custom");
+        Field fieldSysPath = ClassLoader.class.getDeclaredField("sys_paths");
+        fieldSysPath.setAccessible(true);
+        fieldSysPath.set(null, null);
     }
 
     public static Client connect(Map<String, String> params) {
